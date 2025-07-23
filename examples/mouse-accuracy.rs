@@ -95,26 +95,24 @@ fn main() {
         }
 
         while app.has_event() {
-            match app.next_event() {
-                Event::Mouse {
-                    is_down: true,
-                    button: MouseButton::Left,
-                    mouse_x,
-                    mouse_y,
-                } => {
-                    // gameplay phase, and player clicked on rectangle correctly
-                    if millis_since_start > COUNTDOWN_TIME_MILLIS
-                        && millis_since_start < COUNTDOWN_TIME_MILLIS + GAME_TIME_MILLIS
-                    {
-                        if rect.contains_point(Point::new(mouse_x, mouse_y)) {
-                            successes += 1;
-                        } else {
-                            misses += 1;
-                        }
-                        next_position = random_point();
+            if let Event::Mouse {
+                is_down: true,
+                button: MouseButton::Left,
+                mouse_x,
+                mouse_y,
+            } = app.next_event()
+            {
+                // gameplay phase, and player clicked on rectangle correctly
+                if millis_since_start > COUNTDOWN_TIME_MILLIS
+                    && millis_since_start < COUNTDOWN_TIME_MILLIS + GAME_TIME_MILLIS
+                {
+                    if rect.contains_point(Point::new(mouse_x, mouse_y)) {
+                        successes += 1;
+                    } else {
+                        misses += 1;
                     }
+                    next_position = random_point();
                 }
-                _ => (),
             }
         }
     }

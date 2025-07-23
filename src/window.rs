@@ -1,8 +1,11 @@
-use std;
 use std::collections::HashMap;
 use std::path::Path;
 
 extern crate sdl2;
+use crate::event::{self, Event};
+use crate::shape;
+use crate::util;
+use sdl2::Sdl;
 use sdl2::image::ImageRWops;
 use sdl2::image::LoadSurface;
 use sdl2::image::LoadTexture;
@@ -10,10 +13,6 @@ use sdl2::pixels;
 use sdl2::render;
 use sdl2::rwops;
 use sdl2::surface;
-
-use event::{self, Event};
-use shape;
-use util;
 
 /**
  * A Window can display graphics and handle events.
@@ -45,7 +44,13 @@ pub struct Window {
 /// ====================================
 impl Window {
     /// Intialize a new running window. `name` is used as a caption.
+    pub fn new_fullscreen(name: &str) -> Self {
+        Self::new_inner(name, None)
+    }
     pub fn new(name: &str, width: u16, height: u16) -> Self {
+        Self::new_inner(name, Some((width, height)))
+    }
+    fn new_inner(name: &str, dim: Option<(u16, u16)>) -> Self {
         // SDL2 Initialization calls. This section here is the reason we can't easily create
         // multiple Windows. There would have to be some kind of global variable that tracked
         // whether SDL2 had already been init'd.
@@ -66,8 +71,18 @@ impl Window {
 
         let video_subsystem = sdl_context.video().unwrap();
         let event_pump = sdl_context.event_pump().unwrap();
-        let sdl_window_builder = video_subsystem.window(name, width as u32, height as u32);
-        let sdl_window = sdl_window_builder.build().unwrap();
+        let sdl_window = if let Some((width, height)) = dim {
+            video_subsystem
+                .window(name, width as u32, height as u32)
+                .build()
+                .unwrap()
+        } else {
+            video_subsystem
+                .window(name, 0, 0)
+                .fullscreen()
+                .build()
+                .unwrap()
+        };
         let mut canvas = sdl_window.into_canvas().build().unwrap();
 
         // for transparency
@@ -404,7 +419,7 @@ impl Window {
         let surf = surf;
         let mut chars: HashMap<char, shape::Rect> = HashMap::new();
 
-        // let surf_width = surf.width();
+        let surf_width = surf.width();
         let surf_height = surf.height();
         let mut current_rect: Option<shape::Rect> = None;
 
@@ -414,9 +429,8 @@ impl Window {
 
             // Move through the surface and divide it into rectangles according to the color of the
             // topmost pixel.
-            for (i, pixel) in pixels.iter().enumerate() {
-                // for i in 0..(surf_width as usize) {
-                if pixel == &border_color {
+            for (i, pixel) in pixels.iter().enumerate().take(surf_width as usize) {
+                if *pixel == border_color {
                     if let Some(mut rect) = current_rect {
                         let c = match string.chars().nth(chars.len()) {
                             Some(c) => c,
@@ -429,7 +443,7 @@ impl Window {
                         rect = shape::Rect::new(
                             rect.x(),
                             rect.y(),
-                            ((i as i32) - rect.x()) as u32,
+                            (i as i32 - rect.x()) as u32,
                             rect.height(),
                         );
                         chars.insert(c, rect);

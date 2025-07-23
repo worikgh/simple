@@ -4,6 +4,8 @@
  */
 
 extern crate rand;
+use std::f32;
+
 use rand::random;
 
 extern crate simple;
@@ -36,11 +38,11 @@ impl Square {
         // The multiplication here is because random::<f32> appears to generate a value between 0
         // and 1, so we have to expand that range to [0, 2*PI] to get a full distribution of
         // possible angles.
-        let angle: f32 = rand_up_to(3.141592 * 2.0);
+        let angle: f32 = rand_up_to(f32::consts::PI * 2.0);
 
         Square {
-            x: x,
-            y: y,
+            x,
+            y,
             speed_x: angle.sin() * 8.0,
             speed_y: angle.cos() * 8.0,
             color: (random(), random(), random(), 255), // color is totally random
@@ -86,16 +88,15 @@ fn main() {
     while app.next_frame() {
         // event handling
         while app.has_event() {
-            match app.next_event() {
+            if let Event::Mouse {
+                is_down: true,
+                mouse_x,
+                mouse_y,
+                ..
+            } = app.next_event()
+            {
                 // If the user clicks, we add a new Square at the position of the mouse event.
-                Event::Mouse {
-                    is_down: true,
-                    mouse_x,
-                    mouse_y,
-                    ..
-                } => squares.push(Square::new_at_position(mouse_x as f32, mouse_y as f32)),
-
-                _ => (),
+                squares.push(Square::new_at_position(mouse_x as f32, mouse_y as f32));
             }
         }
 

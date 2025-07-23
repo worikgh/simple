@@ -1,8 +1,9 @@
 
 [package]
+edition = "2024"
 name = "simple"
 description = "The simplest graphics library, inspired by LOVE2D"
-version = "0.3.0"
+version = "0.3.1"
 repository = "https://github.com/alexandercampbell/simple"
 keywords = ["simple","graphics","2D"]
 authors = ["Alexander Campbell <alexanderhcampbell@gmail.com>"]

@@ -5,7 +5,7 @@
 extern crate simple;
 
 fn main() {
-    let mut window = simple::Window::new("Los Angeles", 640, 480);
+    let mut window = simple::Window::new_fullscreen("Los Angeles");
     let mut pic = window.load_image(include_bytes!("city.jpg")).unwrap();
 
     let mut frame_number: u64 = 0;
