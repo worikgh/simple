@@ -42,16 +42,13 @@ impl Event {
             SDL_Event::KeyDown {
                 scancode: Some(key),
                 ..
-            } => Some(Event::Keyboard {
-                is_down: true,
-                key: key,
-            }),
+            } => Some(Event::Keyboard { is_down: true, key }),
             SDL_Event::KeyUp {
                 scancode: Some(key),
                 ..
             } => Some(Event::Keyboard {
                 is_down: false,
-                key: key,
+                key,
             }),
 
             // Mouse
@@ -62,7 +59,7 @@ impl Event {
                 ..
             } => Some(Event::Mouse {
                 is_down: true,
-                button: button,
+                button,
                 mouse_x: x,
                 mouse_y: y,
             }),
@@ -73,7 +70,7 @@ impl Event {
                 ..
             } => Some(Event::Mouse {
                 is_down: false,
-                button: button,
+                button,
                 mouse_x: x,
                 mouse_y: y,
             }),
