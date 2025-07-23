@@ -1,5 +1,6 @@
 
 [package]
+edition = "2024"
 name = "simple"
 description = "The simplest graphics library, inspired by LOVE2D"
 version = "0.3.0"

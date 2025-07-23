@@ -1,4 +1,3 @@
-use std;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -11,9 +10,9 @@ use sdl2::render;
 use sdl2::rwops;
 use sdl2::surface;
 
-use event::{self, Event};
-use shape;
-use util;
+use crate::event::{self, Event};
+use crate::shape;
+use crate::util;
 
 /**
  * A Window can display graphics and handle events.
