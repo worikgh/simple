@@ -74,9 +74,9 @@ impl Window {
         canvas.set_blend_mode(render::BlendMode::Blend);
 
         let mut window = Window {
-            timer_subsystem: timer_subsystem,
-            event_pump: event_pump,
-            canvas: canvas,
+            timer_subsystem,
+            event_pump,
+            canvas,
             running: true,
             event_queue: vec![],
             foreground_color: pixels::Color::RGBA(0, 0, 0, 255),
@@ -127,7 +127,7 @@ impl Window {
                     Some(Event::Quit) => self.quit(),
 
                     // any other unrecognized event
-                    Some(e) => (self.event_queue.push(e)),
+                    Some(e) => self.event_queue.push(e),
                     None => (),
                 },
             };
@@ -138,7 +138,7 @@ impl Window {
 
     /// Return true when there is an event waiting in the queue for processing.
     pub fn has_event(&self) -> bool {
-        self.event_queue.len() > 0
+        !self.event_queue.is_empty()
     }
 
     /// Get the next event from the queue. NOTE: If the event queue on the Window is empty, this
@@ -227,8 +227,8 @@ impl Window {
                 Some(shape::Rect::new(
                     x,
                     y,
-                    image.get_width() as u32,
-                    image.get_height() as u32,
+                    image.get_width(),
+                    image.get_height(),
                 )),
                 None,
             )
@@ -333,6 +333,11 @@ impl Font {
         self.chars.len()
     }
 
+    /// Returns `true` if the `chars` contains no elements.
+    pub fn is_empty(&self) -> bool {
+        self.chars.is_empty()
+    }
+
     /// Return the height of the Font. This is constant for every possible character, while the
     /// individual character widths vary. Note that certain characters (such a single quote `'`)
     /// might not actually take up all of `height`. However, no character may exceed this limit.
@@ -348,8 +353,8 @@ impl Font {
 }
 
 /// This is the default font.
-const DEFAULT_FONT_BYTES: &'static [u8] = include_bytes!("default_font.png");
-const DEFAULT_FONT_STR: &'static str =
+const DEFAULT_FONT_BYTES: &[u8] = include_bytes!("default_font.png");
+const DEFAULT_FONT_STR: &str =
     " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,!?-+/():;%&`'*#=[]\"";
 
 /// Resource Loading Methods
@@ -357,12 +362,12 @@ const DEFAULT_FONT_STR: &'static str =
 impl Window {
     /// Load the image at the path you specify.
     pub fn load_image_from_file(&self, filename: &Path) -> Result<Image, String> {
-        let mut texture = try!(self.canvas.texture_creator().load_texture(&filename));
+        let mut texture = self.canvas.texture_creator().load_texture(filename)?;
         texture.set_blend_mode(render::BlendMode::Blend);
         Ok(Image {
             width: texture.query().width,
             height: texture.query().height,
-            texture: texture,
+            texture,
         })
     }
 
@@ -370,8 +375,8 @@ impl Window {
     /// used in conjunction with the `include_bytes` macro that embeds data in the compiled
     /// executable. In this way, you can pack all of your game data into your executable.
     pub fn load_image(&self, data: &[u8]) -> Result<Image, String> {
-        let rwops = try!(rwops::RWops::from_bytes(data));
-        let surf: surface::Surface = try!(rwops.load());
+        let rwops = rwops::RWops::from_bytes(data)?;
+        let surf: surface::Surface = rwops.load()?;
         let mut texture = match self
             .canvas
             .texture_creator()
@@ -384,7 +389,7 @@ impl Window {
         Ok(Image {
             width: texture.query().width,
             height: texture.query().height,
-            texture: texture,
+            texture,
         })
     }
 
@@ -399,7 +404,7 @@ impl Window {
         let surf = surf;
         let mut chars: HashMap<char, shape::Rect> = HashMap::new();
 
-        let surf_width = surf.width();
+        // let surf_width = surf.width();
         let surf_height = surf.height();
         let mut current_rect: Option<shape::Rect> = None;
 
@@ -409,36 +414,29 @@ impl Window {
 
             // Move through the surface and divide it into rectangles according to the color of the
             // topmost pixel.
-            for i in 0..(surf_width as usize) {
-                if pixels[i] == border_color {
-                    match current_rect {
-                        Some(mut rect) => {
-                            let c = match string.chars().nth(chars.len()) {
-                                Some(c) => c,
-                                None => {
-                                    // Out of characters to add to the hashmap, so just return with
-                                    // what have parsed so far.
-                                    return;
-                                }
-                            };
-                            rect = shape::Rect::new(
-                                rect.x(),
-                                rect.y(),
-                                ((i as i32) - rect.x()) as u32,
-                                rect.height(),
-                            );
-                            chars.insert(c, rect.clone());
-                            current_rect = None;
-                        }
-                        None => (),
+            for (i, pixel) in pixels.iter().enumerate() {
+                // for i in 0..(surf_width as usize) {
+                if pixel == &border_color {
+                    if let Some(mut rect) = current_rect {
+                        let c = match string.chars().nth(chars.len()) {
+                            Some(c) => c,
+                            None => {
+                                // Out of characters to add to the hashmap, so just return with
+                                // what have parsed so far.
+                                return;
+                            }
+                        };
+                        rect = shape::Rect::new(
+                            rect.x(),
+                            rect.y(),
+                            ((i as i32) - rect.x()) as u32,
+                            rect.height(),
+                        );
+                        chars.insert(c, rect);
+                        current_rect = None;
                     }
-                } else {
-                    match current_rect {
-                        Some(_) => (),
-                        None => {
-                            current_rect = Some(shape::Rect::new(i as i32, 0, 1, surf_height));
-                        }
-                    }
+                } else if current_rect.is_none() {
+                    current_rect = Some(shape::Rect::new(i as i32, 0, 1, surf_height));
                 }
             }
         });
@@ -454,14 +452,14 @@ impl Window {
         texture.set_blend_mode(render::BlendMode::Blend);
         Ok(Font {
             height: texture.query().height,
-            texture: texture,
-            chars: chars,
+            texture,
+            chars,
         })
     }
 
     /// Load a Font from the hard drive. See the documentation on `Font` for details.
     pub fn load_font_from_file(&self, filename: &Path, string: String) -> Result<Font, String> {
-        let surf: surface::Surface = try!(LoadSurface::from_file(filename));
+        let surf: surface::Surface = LoadSurface::from_file(filename)?;
         self.parse_image_font(surf, string)
     }
 
@@ -469,8 +467,8 @@ impl Window {
     /// function is particularly powerful when used in conjunction with the `include_bytes` macro
     /// that embeds data in the compiled executable.
     pub fn load_font(&self, data: &[u8], string: String) -> Result<Font, String> {
-        let rwops = try!(rwops::RWops::from_bytes(data));
-        let surf: surface::Surface = try!(rwops.load());
+        let rwops = rwops::RWops::from_bytes(data)?;
+        let surf: surface::Surface = rwops.load()?;
         self.parse_image_font(surf, string)
     }
 }
