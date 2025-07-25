@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::error::Error;
 use std::path::Path;
 
 extern crate sdl2;
@@ -6,9 +7,11 @@ use sdl2::image::ImageRWops;
 use sdl2::image::LoadSurface;
 use sdl2::image::LoadTexture;
 use sdl2::pixels;
+use sdl2::rect::Rect;
 use sdl2::render;
 use sdl2::rwops;
 use sdl2::surface;
+use sdl2::Sdl;
 
 use crate::event::{self, Event};
 use crate::shape;
@@ -179,6 +182,19 @@ impl Window {
     /// will return false on the next call.
     pub fn quit(&mut self) {
         self.running = false;
+    }
+
+    /// Get the width and height of the screen
+    fn get_max_dim() -> Result<Rect, Box<dyn Error>> {
+        let sdl_context: Sdl = sdl2::init()?;
+        let video_subsystem = sdl_context.video()?;
+        Ok(video_subsystem.display_bounds(0)?)
+    }
+    pub fn get_max_height() -> Result<u32, Box<dyn Error>> {
+        Ok(Self::get_max_dim()?.height())
+    }
+    pub fn get_max_width() -> Result<u32, Box<dyn Error>> {
+        Ok(Self::get_max_dim()?.width())
     }
 }
 
