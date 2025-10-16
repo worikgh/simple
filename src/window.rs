@@ -5,7 +5,6 @@ extern crate sdl2;
 use crate::event::{self, Event};
 use crate::shape;
 use crate::util;
-use sdl2::Sdl;
 use sdl2::image::ImageRWops;
 use sdl2::image::LoadSurface;
 use sdl2::image::LoadTexture;
@@ -77,8 +76,9 @@ impl Window {
                 .build()
                 .unwrap()
         } else {
+            let display_bounds = video_subsystem.current_display_mode(0).unwrap();
             video_subsystem
-                .window(name, 0, 0)
+                .window(name, display_bounds.w as u32, display_bounds.h as u32)
                 .fullscreen()
                 .build()
                 .unwrap()
@@ -112,6 +112,14 @@ impl Window {
         window.font = Some(font);
 
         window
+    }
+
+    /// Get the canvas drawable size
+    pub fn drawable_size(&self) -> (u32, u32) {
+        (
+            self.canvas.viewport().w as u32,
+            self.canvas.viewport().h as u32,
+        )
     }
 
     /// Redrawing and update the display, while maintaining a consistent framerate and updating the
@@ -485,4 +493,15 @@ impl Window {
         let surf: surface::Surface = rwops.load()?;
         self.parse_image_font(surf, string)
     }
+}
+
+#[test]
+fn test_get_drawable() {
+    let width: u32 = 234;
+    let height: u32 = 321;
+    // TODO: Rationalise the use of `u16` V. `u32`
+    let window = Window::new("Test", width as u16, height as u16);
+    let dble = window.drawable_size();
+    assert!(width == dble.0);
+    assert!(height == dble.1);
 }
