@@ -66,7 +66,9 @@ impl Window {
         //
         let sdl_context = sdl2::init().unwrap();
         let timer_subsystem = sdl_context.timer().unwrap();
-        sdl2::image::init(sdl2::image::InitFlag::all()).unwrap();
+        if let Err(err) = sdl2::image::init(sdl2::image::InitFlag::all()) {
+            panic!("Error simple/window err: {err}");
+        }
 
         let video_subsystem = sdl_context.video().unwrap();
         let event_pump = sdl_context.event_pump().unwrap();
