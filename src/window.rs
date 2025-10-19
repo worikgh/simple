@@ -70,7 +70,10 @@ impl Window {
             panic!("Error simple/window err: {err}");
         }
 
-        let video_subsystem = sdl_context.video().unwrap();
+        let video_subsystem = match sdl_context.video() {
+            Ok(v) => v,
+            Err(err) => panic!("Error simple/window sdl_context.video()  err:{err}"),
+        };
         let event_pump = sdl_context.event_pump().unwrap();
         let sdl_window = if let Some((width, height)) = dim {
             video_subsystem
@@ -78,12 +81,26 @@ impl Window {
                 .build()
                 .unwrap()
         } else {
-            let display_bounds = video_subsystem.current_display_mode(0).unwrap();
-            video_subsystem
-                .window(name, display_bounds.w as u32, display_bounds.h as u32)
-                .fullscreen()
+            // Get the dimensions of the biggest screen and use those
+            let nd = match video_subsystem.num_video_displays() {
+                Ok(n) => n,
+                Err(err) => panic!["Error simple/window: Cannot get num video displays: {err}"],
+            };
+            let (w, h) = (0..nd).fold((0, 0), |a, b| {
+                let z = video_subsystem.current_display_mode(b).unwrap();
+
+                (a.0.max(z.w), a.1.max(z.h))
+            });
+            match video_subsystem
+                .window(name, w as u32, h as u32)
+                .allow_highdpi()
+                .position(0, 0)
+                .maximized()
                 .build()
-                .unwrap()
+            {
+                Ok(v) => v,
+                Err(err) => panic!("Error siple/window: Cannot build window: {err}"),
+            }
         };
         let mut canvas = sdl_window.into_canvas().build().unwrap();
 
