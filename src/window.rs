@@ -356,7 +356,7 @@ impl Image {
  * different font sizes, you have to create two different Fonts from two different files. Another
  * disadvantage is that these special images are less widely available.
  *
- * This link describes how ImageFonts work: https://love2d.org/wiki/Tutorial:Fonts_and_Text
+ * [This link](https://love2d.org/wiki/Tutorial:Fonts_and_Text) describes how ImageFonts work
  */
 pub struct Font {
     texture: render::Texture,
