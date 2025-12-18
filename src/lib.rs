@@ -21,7 +21,7 @@ pub use window::{Font, Image, Window};
 pub use event::Key;
 pub use event::MouseButton;
 
-mod event;
+pub mod event;
 mod shape;
 mod util;
 mod window;

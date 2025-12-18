@@ -10,6 +10,7 @@ use simple::*;
 
 extern crate rand;
 use rand::random;
+use simple::event::MouseEventType;
 
 const WIDTH: u32 = 640;
 const HEIGHT: u32 = 480;
@@ -96,7 +97,7 @@ fn main() {
 
         while app.has_event() {
             if let Event::Mouse {
-                is_down: true,
+                event_type: MouseEventType::Down,
                 button: MouseButton::Left,
                 mouse_x,
                 mouse_y,

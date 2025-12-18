@@ -8,7 +8,14 @@ pub use sdl2::mouse::MouseButton;
  *
  * TODO: Add support for more events like touch events and window resizes.
  */
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
+pub enum MouseEventType {
+    Down,
+    Up,
+    Move,
+}
+
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Event {
     /// Keyboard is either a keypress or a keyrelease. The `is_down` bool tells you which :)
     Keyboard { is_down: bool, key: Key },
@@ -17,7 +24,7 @@ pub enum Event {
     /// of the mouse at the time of the click is listed. The mouse may have moved in the meantime,
     /// so for precision, you can use the position fields on this variant.
     Mouse {
-        is_down: bool,
+        event_type: MouseEventType,
         button: MouseButton,
         mouse_x: i32,
         mouse_y: i32,
@@ -58,7 +65,7 @@ impl Event {
                 y,
                 ..
             } => Some(Event::Mouse {
-                is_down: true,
+                event_type: MouseEventType::Down,
                 button,
                 mouse_x: x,
                 mouse_y: y,
@@ -69,12 +76,17 @@ impl Event {
                 y,
                 ..
             } => Some(Event::Mouse {
-                is_down: false,
+                event_type: MouseEventType::Up,
                 button,
                 mouse_x: x,
                 mouse_y: y,
             }),
-
+            SDL_Event::MouseMotion { x, y, .. } => Some(Event::Mouse {
+                event_type: MouseEventType::Move,
+                button: MouseButton::Unknown,
+                mouse_x: x,
+                mouse_y: y,
+            }),
             _ => None,
         }
     }

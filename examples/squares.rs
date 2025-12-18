@@ -9,6 +9,7 @@ use std::f32;
 use rand::random;
 
 extern crate simple;
+use simple::event::MouseEventType;
 use simple::{Event, Rect, Window};
 
 /// Return an f32 in the interval [0, upper_bound]
@@ -92,7 +93,7 @@ fn main() {
         // event handling
         while app.has_event() {
             if let Event::Mouse {
-                is_down: true,
+                event_type: MouseEventType::Down,
                 mouse_x,
                 mouse_y,
                 ..
