@@ -348,6 +348,23 @@ impl Window {
         self.canvas.set_draw_color(pixels::Color::RGB(r, g, b));
         self.canvas.clear();
     }
+
+    pub fn translate_view_90c(view_x: i32, view_y: i32, view_w: u32, _view_h: u32) -> (i32, i32) {
+        let model_x = view_y;
+        let model_y = view_w as i32 - view_x;
+        (model_x, model_y)
+    }
+    /// Rotate coordinates ninety degrees clockwise
+    pub fn translate_model_90c(
+        model_x: i32,
+        model_y: i32,
+        view_w: u32,
+        _view_h: u32,
+    ) -> (i32, i32) {
+        let view_x = view_w as i32 - model_y;
+        let view_y = model_x;
+        (view_x, view_y)
+    }
 }
 
 /**
