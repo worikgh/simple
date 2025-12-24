@@ -24,3 +24,7 @@ version = "0.32.1"
 default-features = false
 features = ["image", "unsafe_textures"]
 
+
+[[example]]
+name = "qzn3t"
+path = "examples/qzn3t.rs"
