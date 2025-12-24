@@ -8,10 +8,11 @@ use crate::util;
 use sdl2::image::ImageRWops;
 use sdl2::image::LoadSurface;
 use sdl2::image::LoadTexture;
-use sdl2::pixels;
 use sdl2::render;
 use sdl2::rwops;
 use sdl2::surface;
+use sdl2::video::DisplayMode;
+use sdl2::{VideoSubsystem, pixels};
 
 /**
  * A Window can display graphics and handle events.
@@ -81,16 +82,7 @@ impl Window {
                 .build()
                 .unwrap()
         } else {
-            // Get the dimensions of the biggest screen and use those
-            let nd = match video_subsystem.num_video_displays() {
-                Ok(n) => n,
-                Err(err) => panic!["Error simple/window: Cannot get num video displays: {err}"],
-            };
-            let (w, h) = (0..nd).fold((0, 0), |a, b| {
-                let z = video_subsystem.current_display_mode(b).unwrap();
-
-                (a.0.max(z.w), a.1.max(z.h))
-            });
+            let (w, h) = Self::get_max_wh_ctx(&video_subsystem);
             match video_subsystem
                 .window(name, w as u32, h as u32)
                 .allow_highdpi()
@@ -133,6 +125,37 @@ impl Window {
         window
     }
 
+    fn get_max_wh_ctx(video_subsystem: &VideoSubsystem) -> (i32, i32) {
+        Self::get_display_modes(video_subsystem)
+            .unwrap()
+            .iter()
+            .map(|dm| (dm.w, dm.h))
+            .fold((0, 0), |a, b| (a.0.max(b.0), a.1.max(b.1)))
+    }
+    pub fn get_max_wh() -> Result<(i32, i32), String> {
+        let sdl_context = sdl2::init().unwrap();
+        if let Err(err) = sdl2::image::init(sdl2::image::InitFlag::all()) {
+            panic!("Error simple/window err: {err}");
+        }
+
+        let video_subsystem = match sdl_context.video() {
+            Ok(v) => v,
+            Err(err) => panic!("Error simple/window sdl_context.video()  err:{err}"),
+        };
+        Ok(Self::get_max_wh_ctx(&video_subsystem))
+    }
+    /// Get the DislplayModes availabe
+    fn get_display_modes(video_subsystem: &VideoSubsystem) -> Result<Vec<DisplayMode>, String> {
+        let nd = match video_subsystem.num_video_displays() {
+            Ok(n) => n,
+            Err(err) => panic!["Error simple/window: Cannot get num video displays: {err}"],
+        };
+        let rang = 0..nd;
+        let m = rang
+            .map(|nd| video_subsystem.current_display_mode(nd).unwrap())
+            .collect::<Vec<DisplayMode>>();
+        Ok(m)
+    }
     /// Get the canvas drawable size
     pub fn drawable_size(&self) -> (u32, u32) {
         (
