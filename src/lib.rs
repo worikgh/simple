@@ -25,3 +25,17 @@ pub mod event;
 mod shape;
 mod util;
 mod window;
+#[allow(dead_code)]
+pub fn hide_mouse() {
+    let sdl_context = sdl2::init().unwrap();
+
+    // Hide the cursor
+    sdl_context.mouse().show_cursor(false);
+}
+#[allow(dead_code)]
+pub fn show_mouse() {
+    let sdl_context = sdl2::init().unwrap();
+
+    // Hide the cursor
+    sdl_context.mouse().show_cursor(false);
+}
