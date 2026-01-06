@@ -11,7 +11,7 @@ use sdl2::image::LoadTexture;
 use sdl2::render;
 use sdl2::rwops;
 use sdl2::surface;
-use sdl2::video::DisplayMode;
+use sdl2::video::{DisplayMode, WindowBuilder};
 use sdl2::{VideoSubsystem, pixels};
 
 /**
@@ -83,16 +83,11 @@ impl Window {
                 .unwrap()
         } else {
             let (w, h) = Self::get_max_wh_ctx(&video_subsystem);
-            match video_subsystem
-                .window(name, w as u32, h as u32)
-                .allow_highdpi()
-                .position(0, 0)
-                .maximized()
+            WindowBuilder::new(&video_subsystem, "???", w as u32, h as u32)
+                .fullscreen_desktop()
+                .borderless()
                 .build()
-            {
-                Ok(v) => v,
-                Err(err) => panic!("Error siple/window: Cannot build window: {err}"),
-            }
+                .unwrap()
         };
         let mut canvas = sdl_window.into_canvas().build().unwrap();
 
