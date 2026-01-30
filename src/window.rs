@@ -86,6 +86,7 @@ impl Window {
             WindowBuilder::new(&video_subsystem, "???", w as u32, h as u32)
                 .fullscreen_desktop()
                 .borderless()
+                .allow_highdpi()
                 .build()
                 .unwrap()
         };
